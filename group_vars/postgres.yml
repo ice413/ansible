@@ -1,0 +1,5 @@
+# group_vars/postgres.yml
+postgres_version: 15
+  # backup_dir: /usr/lib/postgresql/15/lib/bitcode/postgres/backup
+backup_dir: /var/lib/postgresql/backups
+

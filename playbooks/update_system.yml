@@ -1,0 +1,25 @@
+# playbooks/update_system.yml
+---
+- name: Update all system packages
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Set display name (hostname + IP)
+      set_fact:
+        display_name: "{{ inventory_hostname }} ({{ ansible_host | default('unknown') }})"
+
+    - name: Announce which host is being updated
+      debug:
+        msg: "Starting system update on {{ display_name }}"
+
+  roles:
+    - system
+
+  post_tasks:
+    - name: Confirm update completed
+      debug:
+        msg: "✅ Update completed on {{ display_name }}"
+
+

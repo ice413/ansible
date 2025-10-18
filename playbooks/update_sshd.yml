@@ -1,0 +1,28 @@
+---
+- name: Restrict root SSH login to specific IPs
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update sshd_config to restrict root login
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR ROOT LOGIN"
+        block: |
+          # Allow root login by default only from specific IPs
+          PermitRootLogin no
+
+          # Override PermitRootLogin for specific IPs
+          Match Address 192.168.1.0/24
+              PermitRootLogin yes
+
+    - name: Test SSH config
+      command: sshd -t
+      register: ssh_test
+      failed_when: ssh_test.rc != 0
+
+    - name: Restart SSH service
+      service:
+        name: sshd
+        state: restarted
+      when: ssh_test.rc == 0
+

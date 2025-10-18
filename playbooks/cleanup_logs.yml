@@ -1,0 +1,39 @@
+---
+- name: Clean up old compressed log archives
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  tasks:
+    - name: Find compressed log files in /var/log
+      find:
+        paths: /var/log
+        recurse: yes
+        patterns:
+          - "*.gz"
+          - "*.tar.gz"
+          - "*.tar"
+          - "*.gzip"
+          - "*.gz.[0-9]"
+          - "*.tar.gz.[0-9]"
+          - "*.tar.[0-9]"
+          - "*.gzip.[0-9]"
+      register: found_logs
+
+    - name: Delete found compressed log files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_logs.files }}"
+      when: found_logs.matched > 0
+      changed_when: true
+
+    - name: Report cleanup status
+      debug:
+        msg: >
+          {% if found_logs.matched > 0 %}
+          🧹 Deleted {{ found_logs.matched }} compressed log file(s) in /var/log
+          {% else %}
+          ✅ No compressed log files found in /var/log
+          {% endif %}
+

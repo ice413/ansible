@@ -1,0 +1,48 @@
+all:
+  children:
+    #### Group by OS ####
+    debian11:
+      hosts:
+        postgres:
+          ansible_host: 192.168.1.200  # postgres
+        grafana:
+          ansible_host: 192.168.1.203  # grafana
+          
+    debian12:
+      hosts:
+        npm:
+          ansible_host: 192.168.1.143  # npm
+        pbs:
+          ansible_host: 192.168.1.223  # pbs
+        photoprism:
+          ansible_host: 192.168.1.248  # photoprism
+        heimdall:
+          ansible_host: 192.168.1.125  # heimdall
+        recept:
+          ansible_host: 192.168.1.157  # recept
+        prometheus:
+          ansible_host: 192.168.1.225  # prometheus
+          
+    ubuntu20:
+      hosts:
+        mqtt:
+          ansible_host: 192.168.1.95   # mqtt
+        pihole:
+          ansible_host: 192.168.1.13   # pihole
+          
+    ubuntu22:
+      hosts:
+        influxdb:
+          ansible_host: 192.168.1.202  # influxdb
+        wikijs:
+          ansible_host: 192.168.1.70   # wikijs
+        mail:
+          ansible_host: 192.168.1.201  # mail
+          
+    rocky9:
+      hosts:
+        mariadb:
+          ansible_host: 192.168.1.23   # mariadb
+        wordpress:
+          ansible_host: 192.168.1.197  # wordpress
+          ansible_python_interpreter: /usr/bin/python3

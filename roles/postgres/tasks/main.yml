@@ -1,0 +1,67 @@
+# roles/postgres/tasks/main.yml
+---
+- name: Ensure base packages are installed
+  apt:
+    name:
+      - lsb-release
+      - ca-certificates
+      - apt-transport-https
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Ensure PostgreSQL APT repo is configured
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_lsb.codename }}-pgdg main"
+    state: present
+  when: ansible_lsb.codename is defined
+
+- name: Add PostgreSQL GPG key
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Create backup directory if missing
+  file:
+    path: "{{ backup_dir | default('/var/lib/postgresql/backups') }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0755'
+- name: Backup PostgreSQL databases
+  become_user: postgres
+  command: pg_dumpall > "{{ backup_dir | default('/var/lib/postgresql/backups') }}/pg_backup_{{ ansible_date_time.date }}.sql"
+  args:
+    creates: "{{ backup_dir | default('/var/lib/postgresql/backups') }}/pg_backup_{{ ansible_date_time.date }}.sql"
+  when: not ansible_check_mode
+
+- name: Upgrade all Debian packages
+  apt:
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Upgrade PostgreSQL to latest minor version
+  apt:
+    name: "postgresql-{{ postgres_version | default('15') }}"
+    state: latest
+
+- name: Restart PostgreSQL service
+  service:
+    name: postgresql
+    state: restarted
+
+- name: Verify PostgreSQL is responding
+  become_user: postgres
+  command: pg_isready
+  register: pgstatus
+  changed_when: false
+
+- name: Show PostgreSQL status
+  debug:
+    var: pgstatus.stdout
+
