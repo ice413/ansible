@@ -23,12 +23,15 @@ all:
         prometheus:
           ansible_host: 192.168.1.225  # prometheus
           
+    debian13:
+      hosts:
+        adguard:
+          ansible_host: 192.168.1.69  # AdGuardHome
+    
     ubuntu20:
       hosts:
         mqtt:
           ansible_host: 192.168.1.95   # mqtt
-        pihole:
-          ansible_host: 192.168.1.13   # pihole
           
     ubuntu22:
       hosts:

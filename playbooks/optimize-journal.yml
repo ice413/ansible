@@ -1,0 +1,43 @@
+---
+- name: Sätt 7-dagars log-retention på hela flottan
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Säkerställ att journal-mappen finns på disk
+      file:
+        path: /var/log/journal
+        state: directory
+        mode: '0755'
+
+    - name: Konfigurera journald.conf (Tid & Storlek)
+      lineinfile:
+        path: /etc/systemd/journald.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^#?MaxRetentionSec=', line: 'MaxRetentionSec=7d' }
+        - { regexp: '^#?SystemMaxUse=', line: 'SystemMaxUse=100M' }
+      notify: Restart Journald
+
+    - name: Tvinga rotation och städning nu direkt
+      shell: |
+        journalctl --rotate
+        journalctl --vacuum-time=7d
+      register: vacuum_out
+      changed_when: "'Deleted' in vacuum_out.stdout"
+
+    - name: Rensa gamla apt-paket (endast Debian/Ubuntu)
+      apt:
+        autoclean: yes
+        autoremove: yes
+      when: ansible_os_family == "Debian"
+
+  handlers:
+    - name: Restart Journald
+      systemd:
+        name: systemd-journald
+        state: restarted
+        daemon_reload: yes
